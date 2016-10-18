@@ -27,17 +27,21 @@ struct ZClass {
   ZDestructor   object_finalize;
 };
 
-extern ZClass *ZObject_;
-extern ZClass *ZClass_;
+extern ZClass __ZObject;
+extern ZClass __ZClass;
 
-#define z_new(type, ...) __z_new(type##_, ##__VA_ARGS__)
+#define z_new(type, ...) __z_new(&__##type, ##__VA_ARGS__)
 void*   __z_new(ZClass *type, ...);
 void    z_delete(void *self_);
 
 void*   z_ref(void *self);
 void    z_unref(void *self);
 
-void    __z_cleanup(void *self);
+__attribute__((always_inline))
+static inline void __z_cleanup(void *self)
+{
+  z_unref(*(void**)self);
+}
 
 void    z_object_init(ZObject *self);
 void    z_object_finalize(ZObject *self);

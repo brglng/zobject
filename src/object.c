@@ -3,12 +3,10 @@
 #include <stdarg.h>
 #include "z/object.h"
 
-ZClass __ZObject;
-ZClass __ZClass;
-
 ZClass __ZObject = {
   .super = {
-    .klass = &__ZClass,
+    .refcount   = 1,
+    .klass      = &__ZClass,
   },
   .name             = "ZObject",
   .super_class      = &__ZObject,
@@ -17,9 +15,10 @@ ZClass __ZObject = {
   .object_finalize  = (ZDestructor)z_object_finalize,
 };
 
-ZClass _ZClass = {
+ZClass __ZClass = {
   .super = {
-    .klass = &__ZClass
+    .refcount   = 1,
+    .klass      = &__ZClass,
   },
   .name             = "ZClass",
   .super_class      = &__ZObject,
@@ -27,9 +26,6 @@ ZClass _ZClass = {
   .object_init      = (ZConstructor)z_class_init,
   .object_finalize  = (ZDestructor)z_class_finalize,
 };
-
-ZClass *ZObject_ = &__ZObject;
-ZClass *ZClass_ = &__ZClass;
 
 void z_object_init(ZObject *self)
 {
@@ -40,10 +36,12 @@ void z_object_finalize(ZObject *self)
 }
 
 void z_class_init(ZClass *self)
-{}
+{
+}
 
 void z_class_finalize(ZClass *self)
-{}
+{
+}
 
 char* z_class_get_name(ZClass *self)
 {
@@ -98,9 +96,4 @@ void z_unref(void *self_)
   if (self->refcount == 0) {
     z_delete(self);
   }
-}
-
-void __z_cleanup(void *self)
-{
-  z_unref(*(void**)self);
 }
