@@ -7,32 +7,28 @@ extern "C" {
 
 #include <stdarg.h>
 
-typedef struct ZObject ZObject;
-typedef struct ZClass ZClass;
-
 struct ZObject {
-  size_t    refcount;
-  ZClass*   klass;
+  size_t            refcount;
+  struct ZClass*    klass;
 };
 
 typedef void (*ZConstructor)(void *self, va_list args);
 typedef void (*ZDestructor)(void *self);
 
 struct ZClass {
-  ZObject       super;
-  char*         name;
-  ZClass*       super_class;
-  size_t        object_size;
-  ZConstructor  object_init;
-  ZDestructor   object_finalize;
+  struct ZObject    super;
+  char*             name;
+  struct ZClass*    super_class;
+  size_t            object_size;
+  ZConstructor      object_init;
+  ZDestructor       object_finalize;
 };
 
-extern ZClass __ZObject;
-extern ZClass __ZClass;
+extern struct ZClass *ZObject;
+extern struct ZClass *ZClass;
 
-#define z_new(type, ...) __z_new(&__##type, ##__VA_ARGS__)
-void*   __z_new(ZClass *type, ...);
-void    z_delete(void *self_);
+void*   z_new(struct ZClass *type, ...);
+void    z_delete(void *self);
 
 void*   z_ref(void *self);
 void    z_unref(void *self);
@@ -43,16 +39,16 @@ static inline void __z_cleanup(void *self)
   z_unref(*(void**)self);
 }
 
-void    z_object_init(ZObject *self);
-void    z_object_finalize(ZObject *self);
+void            ZObject_init(struct ZObject *self);
+void            ZObject_finalize(struct ZObject *self);
 
-void    z_class_init(ZClass *self);
-void    z_class_finalize(ZClass *self);
-char*   z_class_get_name(ZClass *self);
-ZClass* z_class_get_super_class(ZClass *self);
+void            ZClass_init(struct ZClass *self);
+void            ZClass_finalize(struct ZClass *self);
+char*           ZClass_get_name(struct ZClass *self);
+struct ZClass*  ZClass_get_super_class(struct ZClass *self);
 
-ZClass* z_object_get_class(void *self);
-ZClass* z_object_get_super_class(void *self);
+struct ZClass*  ZObject_get_class(void *self);
+struct ZClass*  ZObject_get_super_class(void *self);
 
 #define ZVar __attribute__((cleanup(__z_cleanup))) void *
 

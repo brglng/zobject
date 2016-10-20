@@ -3,70 +3,76 @@
 #include <stdarg.h>
 #include "z/object.h"
 
-ZClass __ZObject = {
+struct ZClass _ZObject;
+struct ZClass _ZClass;
+struct ZClass *ZObject = &_ZObject;
+struct ZClass *ZClass = &_ZClass;
+
+struct ZClass _ZObject = {
   .super = {
     .refcount   = 1,
-    .klass      = &__ZClass,
+    .klass      = &_ZClass,
   },
-  .name             = "ZObject",
-  .super_class      = &__ZObject,
-  .object_size      = sizeof(ZObject),
-  .object_init      = (ZConstructor)z_object_init,
-  .object_finalize  = (ZDestructor)z_object_finalize,
+  .name             = "Object",
+  .super_class      = &_ZObject,
+  .object_size      = sizeof(struct ZObject),
+  .object_init      = (ZConstructor)ZObject_init,
+  .object_finalize  = (ZDestructor)ZObject_finalize,
 };
 
-ZClass __ZClass = {
+struct ZClass _ZClass = {
   .super = {
     .refcount   = 1,
-    .klass      = &__ZClass,
+    .klass      = &_ZClass,
   },
-  .name             = "ZClass",
-  .super_class      = &__ZObject,
-  .object_size      = sizeof(ZClass),
-  .object_init      = (ZConstructor)z_class_init,
-  .object_finalize  = (ZDestructor)z_class_finalize,
+  .name             = "Class",
+  .super_class      = &_ZObject,
+  .object_size      = sizeof(struct ZClass),
+  .object_init      = (ZConstructor)ZClass_init,
+  .object_finalize  = (ZDestructor)ZClass_finalize,
 };
 
-void z_object_init(ZObject *self)
+void ZObject_init(struct ZObject *self)
 {
 }
 
-void z_object_finalize(ZObject *self)
+void ZObject_finalize(struct ZObject *self)
 {
 }
 
-void z_class_init(ZClass *self)
+void ZClass_init(struct ZClass *self)
 {
 }
 
-void z_class_finalize(ZClass *self)
+void ZClass_finalize(struct ZClass *self)
 {
 }
 
-char* z_class_get_name(ZClass *self)
+char* ZClass_get_name(struct ZClass *self)
 {
   return self->name;
 }
 
-ZClass* z_class_get_super_class(ZClass *self)
+struct ZClass* ZClass_get_super_class(struct ZClass *self)
 {
   return self->super_class;
 }
 
-ZClass* z_object_get_class(void *self)
+struct ZClass* ZObject_get_class(void *self)
 {
-  return ((ZObject*)self)->klass;
+  return ((struct ZObject*)self)->klass;
 }
 
-ZClass* z_object_get_super_class(void *self)
+struct ZClass* ZObject_get_super_class(void *self)
 {
-  return ((ZObject*)self)->klass->super_class;
+  return ((struct ZObject*)self)->klass->super_class;
 }
 
-void* __z_new(ZClass *type, ...)
+__attribute__((malloc))
+void* z_new(struct ZClass *type, ...)
 {
   va_list args;
-  ZObject* obj = (ZObject*)malloc(type->object_size);
+  struct ZObject* obj = (struct ZObject*)malloc(type->object_size);
   obj->klass = type;
   obj->refcount = 1;
   va_start(args, type);
@@ -75,23 +81,23 @@ void* __z_new(ZClass *type, ...)
   return obj;
 }
 
-void z_delete(void *self_)
+void z_delete(void *_self)
 {
-  ZObject *self = self_;
+  struct ZObject *self = _self;
   self->klass->object_finalize(self);
   free(self);
 }
 
-void* z_ref(void *self_)
+void* z_ref(void *_self)
 {
-  ZObject *self = self_;
+  struct ZObject *self = _self;
   self->refcount++;
   return self;
 }
 
-void z_unref(void *self_)
+void z_unref(void *_self)
 {
-  ZObject *self = self_;
+  struct ZObject *self = _self;
   self->refcount--;
   if (self->refcount == 0) {
     z_delete(self);
