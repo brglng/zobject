@@ -16,8 +16,8 @@ struct ZClass _ZObject = {
   .name             = "Object",
   .super_class      = &_ZObject,
   .object_size      = sizeof(struct ZObject),
-  .object_init      = (ZConstructor)ZObject_init,
-  .object_finalize  = (ZDestructor)ZObject_finalize,
+  .object_init      = ZObject_init,
+  .object_finalize  = ZObject_finalize,
 };
 
 struct ZClass _ZClass = {
@@ -28,23 +28,31 @@ struct ZClass _ZClass = {
   .name             = "Class",
   .super_class      = &_ZObject,
   .object_size      = sizeof(struct ZClass),
-  .object_init      = (ZConstructor)ZClass_init,
-  .object_finalize  = (ZDestructor)ZClass_finalize,
+  .object_init      = ZClass_init,
+  .object_finalize  = ZClass_finalize,
 };
 
-void ZObject_init(struct ZObject *self)
+void ZObject_init(void *self, va_list args)
 {
 }
 
-void ZObject_finalize(struct ZObject *self)
+void ZObject_finalize(void *self)
 {
 }
 
-void ZClass_init(struct ZClass *self)
+void ZClass_init(void *_self, va_list args)
 {
+  struct ZClass *self = _self;
+  self->super.refcount = 1;
+  self->super.klass = &_ZClass;
+  self->name = va_arg(args, char*);
+  self->super_class = va_arg(args, struct ZClass*);
+  self->object_size = va_arg(args, size_t);
+  self->object_init = va_arg(args, ZConstructor);
+  self->object_finalize = va_arg(args, ZDestructor);
 }
 
-void ZClass_finalize(struct ZClass *self)
+void ZClass_finalize(void *self)
 {
 }
 

@@ -39,18 +39,18 @@ static inline void __z_cleanup(void *self)
   z_unref(*(void**)self);
 }
 
-void            ZObject_init(struct ZObject *self);
-void            ZObject_finalize(struct ZObject *self);
+void            ZObject_init(void *self, va_list args);
+void            ZObject_finalize(void *self);
 
-void            ZClass_init(struct ZClass *self);
-void            ZClass_finalize(struct ZClass *self);
+void            ZClass_init(void *self, va_list args);
+void            ZClass_finalize(void *self);
 char*           ZClass_get_name(struct ZClass *self);
 struct ZClass*  ZClass_get_super_class(struct ZClass *self);
 
 struct ZClass*  ZObject_get_class(void *self);
 struct ZClass*  ZObject_get_super_class(void *self);
 
-#define ZVar __attribute__((cleanup(__z_cleanup))) void *
+#define ZRef __attribute__((cleanup(__z_cleanup)))
 
 #ifdef  __cplusplus
 }
