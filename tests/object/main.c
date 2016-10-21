@@ -55,7 +55,7 @@ void test_raii(bool *destructor_is_called)
 {
   z_init_class_RaiiTest();
   *destructor_is_called = false;
-  ZRef struct RaiiTest *raii_obj = z_new(RaiiTest, destructor_is_called);
+  ZRef(RaiiTest) raii_obj = z_new(RaiiTest, destructor_is_called);
 }
 
 int main(int argc, char *argv[])

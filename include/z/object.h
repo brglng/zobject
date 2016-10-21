@@ -50,7 +50,7 @@ struct ZClass*  ZClass_get_super_class(struct ZClass *self);
 struct ZClass*  ZObject_get_class(void *self);
 struct ZClass*  ZObject_get_super_class(void *self);
 
-#define ZRef __attribute__((cleanup(__z_cleanup)))
+#define ZRef(klass) __attribute__((cleanup(__z_cleanup))) struct klass *
 
 #ifdef  __cplusplus
 }
