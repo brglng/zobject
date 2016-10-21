@@ -40,7 +40,7 @@ void RaiiTestClass_finalize(void *_self, va_list args)
 }
 
 // must put this *after* your class's structs and methods
-Z_DEFINE_CLASS(RaiiTest, ZObject);
+Z_DEFINE_CLASS(RaiiTest, ZObject)
 
 void test_raii(bool *destructor_is_called)
 {
