@@ -138,10 +138,10 @@ int main(void)
 ```
 
 ## References
-[Object-Oriented Programming with ANSI C](https://www.cs.rit.edu/~ats/books/ooc.pdf)
-[GObject](https://developer.gnome.org/gobject/stable/)
-[Inside the C++ Object Model](https://www.amazon.com/Inside-Object-Model-Stanley-Lippman/dp/0201834545)
-[Cello](http://libcello.org/)
-[Viola](https://github.com/eatonphil/Viola)
-[Implementing smart pointers for the C programming language](https://snai.pe/c/c-smart-pointers/)
-[libcsptr](https://github.com/Snaipe/libcsptr)
+- [Object-Oriented Programming with ANSI C](https://www.cs.rit.edu/~ats/books/ooc.pdf)
+- [GObject](https://developer.gnome.org/gobject/stable/)
+- [Inside the C++ Object Model](https://www.amazon.com/Inside-Object-Model-Stanley-Lippman/dp/0201834545)
+- [Cello](http://libcello.org/)
+- [Viola](https://github.com/eatonphil/Viola)
+- [Implementing smart pointers for the C programming language](https://snai.pe/c/c-smart-pointers/)
+- [libcsptr](https://github.com/Snaipe/libcsptr)
