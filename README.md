@@ -81,7 +81,11 @@ void SomeObject_finalize(void *_self)
 void SomeObjectClass_init(void *_self, va_list args)
 {
   // Almost certainly you should call the super metaclass's constructor.
-  ZClass_init(_self);
+  ZClass_init(_self, args);
+
+  // Although declared with `args` parameter, metaclass's constructor should not
+  // actually take any parameters. Even if you use `va_arg` to get parameters,
+  // they are ignored by `z_new`.
 
   SomeObjectClass *self = _self;
 
