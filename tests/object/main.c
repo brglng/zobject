@@ -47,8 +47,8 @@ void test_raii(bool *destructor_is_called)
 {
   *destructor_is_called = false;
 
-  // variables declared with ZRef are RAII variables with reference counting
-  ZRef(RaiiTest) raii_obj = z_new(RaiiTest(), destructor_is_called);
+  // ZRef's are reference counted RAII pointers
+  ZRef raii_obj = z_new(RaiiTest(), destructor_is_called);
 }
 
 int main(int argc, char *argv[])

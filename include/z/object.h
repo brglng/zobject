@@ -84,7 +84,7 @@ struct ZClass*  ZObject_get_super_class(void *self);
 
 #define Z_DEFINE_CLASS(name, super_name) _Z_DEFINE_CLASS(name, super_name)
 
-#define ZRef(klass) __attribute__((cleanup(__z_cleanup))) struct klass *
+#define ZRef __attribute__((cleanup(__z_cleanup))) void *
 
 #ifdef  __cplusplus
 }
