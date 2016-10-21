@@ -66,7 +66,7 @@ some_class.c:
 #include "some_class.h"
 
 // Put this in each class's implementation. The first parameters is the name of
-// the class, and the second one is the class which you inherit.
+// the class, and the second one is the class which your class inherits.
 Z_DEFINE_CLASS(SomeObject, ZObject)
 
 void SomeObject_init(void *_self, va_list args)
@@ -90,7 +90,7 @@ void SomeObjectClass_init(void *_self, va_list args)
   self->get_some_member = SomeObject_get_some_member;
 }
 
-void SomeObjectClass_finalize()
+void SomeObjectClass_finalize(void *_self)
 {}
 
 void SomeObject_set_some_member(void *_self, int some_member)
