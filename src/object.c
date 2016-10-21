@@ -5,8 +5,6 @@
 
 struct ZClass _ZObject;
 struct ZClass _ZClass;
-struct ZClass *ZObject = &_ZObject;
-struct ZClass *ZClass = &_ZClass;
 
 struct ZClass _ZObject = {
   .super = {
@@ -31,6 +29,16 @@ struct ZClass _ZClass = {
   .object_init      = ZClass_init,
   .object_finalize  = ZClass_finalize,
 };
+
+struct ZClass* ZObject(void)
+{
+  return &_ZObject;
+}
+
+struct ZClass* ZClass(void)
+{
+  return &_ZClass;
+}
 
 void ZObject_init(void *self, va_list args)
 {
