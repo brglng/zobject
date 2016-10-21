@@ -112,9 +112,9 @@ int SomeObject_get_some_member(void *_self)
 
 int main(void)
 {
-  // Using 'z_new' just like 'new' in C++. The first parameter is a function
-  // with the name of the class, which is defined automatically in the
-  // Z_DEFINE_CLASS macro. 'z_new' calls the constructor.
+  // Use 'z_new' just like 'new' in C++. The first parameter is a function with
+  // the name of the class, which is defined automatically in the Z_DEFINE_CLASS
+  // macro. 'z_new' calls the constructor.
   void *obj = z_new(SomeObject(), 123);
 
   // Ordinary objects must be deleted manually. 'z_delete' calls the destructor.
@@ -123,7 +123,7 @@ int main(void)
   // Objects declared as ZRef are reference counted objects with RAII, whose
   // internal reference count is automatically decremented at the end of a
   // function. When the count become zero, it is automatically deleted.
-  ZRef obj = z_new(SomeObject(), 123);
+  ZRef obj1 = z_new(SomeObject(), 123);
 
   // call methods
   SomeObject_set_some_member(obj1, 321);
