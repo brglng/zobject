@@ -24,7 +24,8 @@ void RaiiTest_init(void *_self, va_list args)
   self->destructor_is_called = va_arg(args, bool*);
 }
 
-void RaiiTest_finalize(void *_self) {
+void RaiiTest_finalize(void *_self)
+{
   struct RaiiTest *self = _self;
   *self->destructor_is_called = true;
 }
@@ -35,7 +36,7 @@ void RaiiTestClass_init(void *_self, va_list args)
   ZClass_init(_self, args);
 }
 
-void RaiiTestClass_finalize(void *_self, va_list args)
+void RaiiTestClass_finalize(void *_self)
 {
 }
 
