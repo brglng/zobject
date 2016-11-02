@@ -1,11 +1,11 @@
 # ZObject
 This is my experiment on Object-Oriented Programming with C. It is a library
 which can be called from any C/C++ program. It currently only supports GCC and
-Clang (because the RAII implementation depends on [GCC's extension of `__attribute__(cleanup)`](https://gcc.gnu.org/onlinedocs/gcc-6.1.0/gcc/Common-Variable-Attributes.html)).
+Clang (because the implementation heavily depends on [GCC extensions](https://gcc.gnu.org/onlinedocs/gcc-6.1.0/gcc/Common-Variable-Attributes.html)).
 This library is in very early development and is not ready for production. Use
 at your own risk!
 
-## Why Bother Creating Yet Another Object-Oriented Programming Library for C?
+## Why Bother Creating Yet Another C Object-Oriented Programming Library?
 Just as I said before, this is my experiment. I create this library not only for
 fun, but also for learning the internals of Object-Oriented Programming.
 
