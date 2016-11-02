@@ -80,8 +80,11 @@ void    *ZObject_getSuperType(void *self);
 
 #define ZVar __attribute__((__cleanup__(ZFinalize)))
 #define ZInit(type, ...) \
-  *(struct type *)_ZInit((char[sizeof(struct type)]){0}, type(), ##__VA_ARGS__)
-#define Z_VAR(name, type, ...) ZVar struct type name = ZInit(type, ##__VA_ARGS__)
+  (*(struct type *)_ZInit((char[sizeof(struct type)]){0}, \
+                          type(), ##__VA_ARGS__))
+#define Z_VAR(name, type, ...) \
+  ZVar struct type name = ZInit(type, ##__VA_ARGS__)
+
 #define ZAuto __auto_type
 #define ZAutoVar ZVar ZAuto
 
