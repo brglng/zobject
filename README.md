@@ -86,9 +86,11 @@ int SomeObject_getSomeMember(void *_self)
 int main(void)
 {
   // stack object, RAII is supported
-  Z_VAR(obj1, SomeObject, 123);
+  ZAuto obj1 = ZInit(SomeObject, 123);
   // or use the following style
-  // ZVar SomeObject obj1 = ZInit(SomeObject, 123);
+  // ZVar struct SomeObject obj1 = ZInit(SomeObject, 123);
+  // or use
+  // Z_VAR(obj1, SomeObject, 123);
 
   // heap object, which must be deleted manually
   void *obj2 = ZNew(SomeObject(), 123);

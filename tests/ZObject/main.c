@@ -48,8 +48,8 @@ void testRaii(bool *destructorIsCalled)
   *destructorIsCalled = false;
 
   /* either style of definition is ok */
-  /* ZVar RaiiTest raiiObj = ZInit(RaiiTest, destructorIsCalled); */
-  Z_VAR(raiiObj, RaiiTest, destructorIsCalled);
+  ZAuto raiiObj = ZInit(RaiiTest, destructorIsCalled);
+  /* Z_VAR(raiiObj, RaiiTest, destructorIsCalled); */
 }
 
 int main(int argc, char *argv[])
