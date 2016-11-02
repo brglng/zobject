@@ -5,137 +5,100 @@ Clang (because the RAII implementation depends on [GCC's extension of `__attribu
 This library is in very early development and is not ready for production. Use
 at your own risk!
 
-## Why Creating Yet Another Object-Oriented Programming Library for C?
+## Why Bother Creating Yet Another Object-Oriented Programming Library for C?
 Just as I said before, this is my experiment. I create this library not only for
 fun, but also for learning the internals of Object-Oriented Programming.
 
 ## Usage and Features
 
-### Defining a class
-some_class.h:
+### Defining a Type
+SomeObject.h:
 ```c
-#include "z/object.h"
+#include "ZObject.h"
 
-// This is only necessary if you want your class to be accessible from other .c
-// files. Put it in the header. The parameter is the name of the type, which
-// must be the same as your struct definition.
-Z_DECLARE_CLASS(SomeObject)
+Z_DECLARE_TYPE(SomeObject)
 
 struct SomeObject {
-  // Inherit by putting a super class instance at the first slot. All classes
-  // must inherit ZObject if not another class.
   struct ZObject super;
-
-  // Put your instance members here.
-  int some_member;                  
+  int someMember;                  
 };
 
-// Each class has a corresponding metaclass, which must be named *Class.
-struct SomeObjectClass {
-  // Must inherit a metaclass. ZClass is the default one.
-  struct ZClass super;
-
-  // Methods are declared as function pointers in the metaclass struct.
-  void (*set_some_member)(void *self, int);
-  int (*get_some_member)(void *self);
+struct SomeObjectType {
+  struct ZType super;
+  void (*setSomeMember)(void *self, int);
+  int (*getSomeMember)(void *self);
 };
 
-// SomeObject constructor. Must be named *_init and identical to this signature.
 void SomeObject_init(void *self, va_list args);
-
-// SomeObject destructor. Must be named *_finalize and identical to this
-// signature.
 void SomeObject_finalize(void *self);
-
-// SomeObjectClass constructor. Must be named *_init and identical to this
-// signatue.
 void SomeObjectClass_init(void *self, va_list args);
-
-// SomeObject destructor. Must be named *_finalize and identical to this
-// signature.
 void SomeObjectClass_finalize(void *self);
-
-// Using the class name to prefix its methods is recommended.
-void SomeObject_set_some_member(void *self, int some_member);
-int  SomeObject_get_some_member(void *self);
+void SomeObject_setSomeMember(void *self, int someMember);
+int  SomeObject_getSomeMember(void *self);
 ```
 
-some_class.c:
+SomeObject.c:
 ```c
-#include "z/object.h"
-#include "some_class.h"
+#include "ZObject.h"
+#include "SomeObject.h"
 
-// Put this in each class's implementation. The first parameters is the name of
-// the class, and the second one is the class which your class inherits.
-Z_DEFINE_CLASS(SomeObject, ZObject)
+Z_DEFINE_TYPE(SomeObject, ZObject)
 
 void SomeObject_init(void *_self, va_list args)
 {
   SomeObject *self = _self;
-  self->some_member = va_arg(args, int);
+  self->someMember = va_arg(args, int);
 }
 
 void SomeObject_finalize(void *_self)
 {}
 
-void SomeObjectClass_init(void *_self, va_list args)
+void SomeObjectType_init(void *_self, va_list args)
 {
-  // Almost certainly you should call the super metaclass's constructor.
-  ZClass_init(_self, args);
+  ZType_init(_self, args);
 
-  // Although declared with `args` parameter, metaclass's constructor should not
-  // actually take any parameters. Even if you use `va_arg` to get parameters,
-  // they are ignored by `z_new`.
+  SomeObjectType *self = _self;
 
-  SomeObjectClass *self = _self;
-
-  // You must set up your overrided methods here.
-  self->set_some_member = SomeObject_set_some_member;
-  self->get_some_member = SomeObject_get_some_member;
+  self->setSomeMember = SomeObject_setSomeMember;
+  self->getSomeMember = SomeObject_getSomeMember;
 }
 
-void SomeObjectClass_finalize(void *_self)
+void SomeObjectType_finalize(void *_self)
 {}
 
-void SomeObject_set_some_member(void *_self, int some_member)
+void SomeObject_setSomeMember(void *_self, int someMember)
 {
   SomeObject *self = _self;
-  self->some_member = some_member;
+  self->someMember = someMember;
 }
 
-int SomeObject_get_some_member(void *_self)
+int SomeObject_getSomeMember(void *_self)
 {
   SomeObject *self = _self;
-  return self->some_member;
+  return self->someMember;
 }
 ```
 
-### Using a class
+### Using a Type
 ```c
-#inlucde "some_object.h"
+#include "SomeObject.h"
 
 int main(void)
 {
-  // Use 'z_new' just like 'new' in C++. The first parameter is a function with
-  // the name of the class, which is defined automatically in the Z_DEFINE_CLASS
-  // macro. 'z_new' calls the constructor.
-  void *obj = z_new(SomeObject(), 123);
+  // stack object, RAII is supported
+  Z_VAR(obj1, SomeObject, 123);
+  // or use the following style
+  // ZVar SomeObject obj1 = ZInit(SomeObject, 123);
 
-  // Ordinary objects must be deleted manually. 'z_delete' calls the destructor.
-  z_delete(obj);
-
-  // Objects declared as ZRef are reference counted objects with RAII, whose
-  // internal reference count is automatically decremented at the end of a
-  // function. When the count become zero, it is automatically deleted.
-  ZRef obj1 = z_new(SomeObject(), 123);
+  // heap object, which must be deleted manually
+  void *obj2 = ZNew(SomeObject(), 123);
 
   // call methods
-  SomeObject_set_some_member(obj1, 321);
+  SomeObject_setSomeMember(obj2, 321);
 
-  // should prints '321'
-  printf("%d\n", SomeObject_get_some_member(obj1));
+  printf("%d\n", SomeObject_getSomeMember(obj2));
 
-  // z_delete(obj1) is not necessary
+  ZDelete(obj2);
 
   return 0;
 }
