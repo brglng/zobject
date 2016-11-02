@@ -19,14 +19,14 @@ SomeObject.h:
 Z_DECLARE_TYPE(SomeObject)
 
 struct SomeObject {
-  struct ZObject super;
-  int someMember;                  
+  struct ZObject    super;
+  int               someMember;                  
 };
 
 struct SomeObjectType {
-  struct ZType super;
-  void (*setSomeMember)(void *self, int);
-  int (*getSomeMember)(void *self);
+  struct ZType  super;
+  void          (*setSomeMember)(void *self, int);
+  int           (*getSomeMember)(void *self);
 };
 
 void SomeObject_init(void *self, va_list args);
