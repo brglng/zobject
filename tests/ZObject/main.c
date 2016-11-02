@@ -48,7 +48,7 @@ void testRaii(bool *destructorIsCalled)
   *destructorIsCalled = false;
 
   /* either style of definition is ok */
-  ZAuto raiiObj = ZInit(RaiiTest, destructorIsCalled);
+  ZAutoVar raiiObj = ZInit(RaiiTest, destructorIsCalled);
   /* Z_VAR(raiiObj, RaiiTest, destructorIsCalled); */
 }
 

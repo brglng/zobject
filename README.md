@@ -86,8 +86,10 @@ int SomeObject_getSomeMember(void *_self)
 int main(void)
 {
   // stack object, RAII is supported
-  ZAuto obj1 = ZInit(SomeObject, 123);
+  ZAutoVar obj1 = ZInit(SomeObject, 123);
   // or use the following style
+  // ZVar ZAuto obj1 = ZInit(SomeObject, 123);
+  // or use
   // ZVar struct SomeObject obj1 = ZInit(SomeObject, 123);
   // or use
   // Z_VAR(obj1, SomeObject, 123);
