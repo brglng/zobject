@@ -20,7 +20,7 @@ Z_DECLARE_TYPE(SomeObject)
 
 struct SomeObject {
   struct ZObject    super;
-  int               someMember;                  
+  int               someMember;
 };
 
 struct SomeObjectType {
@@ -85,24 +85,20 @@ int SomeObject_getSomeMember(void *_self)
 
 int main(void)
 {
-  // stack object, RAII is supported
-  ZAutoVar obj1 = ZInit(SomeObject, 123);
-  // or use the following style
-  // ZVar ZAuto obj1 = ZInit(SomeObject, 123);
-  // or use
-  // ZVar struct SomeObject obj1 = ZInit(SomeObject, 123);
-  // or use
-  // Z_VAR(obj1, SomeObject, 123);
+  void *obj1 = Z_new(SomeObject, 123);
 
-  // heap object, which must be deleted manually
-  void *obj2 = ZNew(SomeObject(), 123);
+  // ordinary objects must be deleted
+  Z_delete(obj1);
 
-  // call methods
-  SomeObject_setSomeMember(obj2, 321);
+  // RAII objects declared using ZPtr
+  ZPtr obj = Z_new(SomeObject(), 123);
 
-  printf("%d\n", SomeObject_getSomeMember(obj2));
+  // call virtual methods
+  Z_cast(SomeObjectType, Z_typeOf(obj2))->setSomeMember(obj2, 321);
 
-  ZDelete(obj2);
+  printf("%d\n", Z_cast(SomeObjectType, Z_typeOf(obj2))->getSomeMember(obj2));
+
+  // ZDelete(obj2) is not necessay
 
   return 0;
 }
