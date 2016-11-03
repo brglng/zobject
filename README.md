@@ -94,9 +94,9 @@ int main(void)
   ZPtr obj = Z_new(SomeObject, 123);
 
   // call virtual methods
-  ((SomeObjectType*)Z_typeOf(obj2))->setSomeMember(obj2, 321);
+  ((struct SomeObjectType*)Z_typeOf(obj2))->setSomeMember(obj2, 321);
 
-  printf("%d\n", ((SomeObjectType*)Z_typeOf(obj2))->getSomeMember(obj2));
+  printf("%d\n", ((struct SomeObjectType*)Z_typeOf(obj2))->getSomeMember(obj2));
 
   // ZDelete(obj2) is not necessay
 
