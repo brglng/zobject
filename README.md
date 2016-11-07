@@ -46,7 +46,7 @@ Z_DEFINE_TYPE(SomeObject, ZObject)
 
 void SomeObject_init(void *_self, va_list args)
 {
-  SomeObject *self = _self;
+  SomeObject *self = Z_cast(SomeObject(), _self);
   self->someMember = va_arg(args, int);
 }
 
@@ -55,9 +55,9 @@ void SomeObject_finalize(void *_self)
 
 void SomeObjectType_init(void *_self, va_list args)
 {
-  ZType_init(_self, args);
+  SomeObjectType *self = Z_cast(SomeObjectType(), _self);
 
-  SomeObjectType *self = _self;
+  ZType_init(_self, args);
 
   self->setSomeMember = SomeObject_setSomeMember;
   self->getSomeMember = SomeObject_getSomeMember;
@@ -68,13 +68,13 @@ void SomeObjectType_finalize(void *_self)
 
 void SomeObject_setSomeMember(void *_self, int someMember)
 {
-  SomeObject *self = _self;
+  SomeObject *self = Z_cast(SomeObject(), _self);
   self->someMember = someMember;
 }
 
 int SomeObject_getSomeMember(void *_self)
 {
-  SomeObject *self = _self;
+  SomeObject *self = Z_cast(SomeObject(), _self);
   return self->someMember;
 }
 ```
@@ -98,7 +98,7 @@ int main(void)
 
   printf("%d\n", ((SomeObjectType *)Z_typeOf(obj2))->getSomeMember(obj2));
 
-  // ZDelete(obj2) is not necessay
+  // Z_delete(obj2) is not necessay
 
   return 0;
 }
