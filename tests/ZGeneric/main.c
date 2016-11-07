@@ -14,7 +14,7 @@ struct TestGenericObjectType {
 void TestGenericObject_init(void *_self, va_list args)
 {
   struct TestGenericObject *self = _self;
-  self->data = Z_cast(ZGeneric_getTypeArg(Z_typeOf(self), 0), va_arg(args, void *));
+  self->data = Z_cast(ZGeneric_getArg(Z_typeOf(self), 0), va_arg(args, void *));
 }
 
 void TestGenericObject_finalize(void *_self)

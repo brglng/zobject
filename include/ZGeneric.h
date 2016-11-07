@@ -25,7 +25,7 @@ void ZGeneric_finalize(void *_self);
 void ZGenericType_init(void *_self, va_list args);
 void ZGenericType_finalize(void *_self);
 
-static inline void *ZGeneric_getTypeArg(void *_self, size_t index) {
+static inline void *ZGeneric_getArg(void *_self, size_t index) {
   struct ZGeneric *self = Z_cast(ZGeneric(), _self);
   assert(index < self->numArgs);
   return self->args[index];
