@@ -91,7 +91,7 @@ int main(void)
   Z_delete(obj1);
 
   // RAII objects declared using ZRaii
-  ZRaii obj = Z_new(SomeObject(), 123);
+  ZRaii void *obj2 = Z_new(SomeObject(), 123);
 
   // call virtual methods
   ((SomeObjectType *)Z_typeOf(obj2))->setSomeMember(obj2, 321);
