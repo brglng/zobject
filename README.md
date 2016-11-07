@@ -85,18 +85,18 @@ int SomeObject_getSomeMember(void *_self)
 
 int main(void)
 {
-  void *obj1 = Z_new(SomeObject, 123);
+  void *obj1 = Z_new(SomeObject(), 123);
 
   // ordinary objects must be deleted
   Z_delete(obj1);
 
-  // RAII objects declared using ZPtr
-  ZPtr obj = Z_new(SomeObject, 123);
+  // RAII objects declared using ZRaii
+  ZRaii obj = Z_new(SomeObject(), 123);
 
   // call virtual methods
-  ((struct SomeObjectType*)Z_typeOf(obj2))->setSomeMember(obj2, 321);
+  ((SomeObjectType *)Z_typeOf(obj2))->setSomeMember(obj2, 321);
 
-  printf("%d\n", ((struct SomeObjectType*)Z_typeOf(obj2))->getSomeMember(obj2));
+  printf("%d\n", ((SomeObjectType *)Z_typeOf(obj2))->getSomeMember(obj2));
 
   // ZDelete(obj2) is not necessay
 

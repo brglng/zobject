@@ -20,13 +20,13 @@ struct RaiiTestType {
 
 void RaiiTest_init(void *_self, va_list args)
 {
-  struct RaiiTest *self = Z_cast(RaiiTest, _self);
+  struct RaiiTest *self = Z_cast(RaiiTest(), _self);
   self->destructorIsCalled = va_arg(args, bool*);
 }
 
 void RaiiTest_finalize(void *_self)
 {
-  struct RaiiTest *self = Z_cast(RaiiTest, _self);
+  struct RaiiTest *self = Z_cast(RaiiTest(), _self);
   *self->destructorIsCalled = true;
 }
 
@@ -47,28 +47,28 @@ void testRaii(bool *destructorIsCalled)
 {
   *destructorIsCalled = false;
 
-  ZPtr raiiObj = Z_new(RaiiTest, destructorIsCalled);
+  ZRaii void *raiiObj = Z_new(RaiiTest(), destructorIsCalled);
 }
 
 int main(int argc, char *argv[])
 {
-  void *obj = Z_new(ZObject);
+  void *obj = Z_new(ZObject());
   void *type = ZObject_getType(obj);
   void *typeType = ZObject_getType(type);
 
   // Object
-  assert(ZObject_getType(obj) == ZObject);
-  assert(ZObject_getType(type) == ZType);
-  assert(ZObject_getType(typeType) == ZType);
-  assert(ZObject_getSuperType(obj) == ZObject);
-  assert(ZObject_getSuperType(type) == ZObject);
-  assert(ZObject_getSuperType(typeType) == ZObject);
+  assert(ZObject_getType(obj) == ZObject());
+  assert(ZObject_getType(type) == ZType());
+  assert(ZObject_getType(typeType) == ZType());
+  assert(ZObject_getSuperType(obj) == ZObject());
+  assert(ZObject_getSuperType(type) == ZObject());
+  assert(ZObject_getSuperType(typeType) == ZObject());
 
   // Type
   assert(strcmp(ZType_getName(type), "Object") == 0);
   assert(strcmp(ZType_getName(typeType), "Type") == 0);
-  assert(ZType_getSuperType(type) == ZObject);
-  assert(ZType_getSuperType(typeType) == ZObject);
+  assert(ZType_getSuperType(type) == ZObject());
+  assert(ZType_getSuperType(typeType) == ZObject());
 
   // RAII
   bool destructorIsCalled = false;

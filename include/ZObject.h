@@ -15,10 +15,8 @@ extern "C" {
 typedef void (*ZConstructor)(void *self, va_list args);
 typedef void (*ZDestructor)(void *self);
 
-extern void *ZObject;
-extern void *ZType;
-void *ZObject_initType(void);
-void *ZType_initType(void);
+void *ZObject(void);
+void *ZType(void);
 
 struct ZObject {
   uint32_t       magic;
@@ -56,17 +54,16 @@ void     ZType_init(void *self, va_list args);
 void     ZType_finalize(void *self);
 
 static inline char* ZType_getName(void *_self) {
-  struct ZType *self = Z_cast(ZType, _self);
+  struct ZType *self = Z_cast(ZType(), _self);
   return self->name;
 }
 
 static inline void *ZType_getSuperType(void *_self) {
-  struct ZType *self = Z_cast(ZType, _self);
+  struct ZType *self = Z_cast(ZType(), _self);
   return self->superType;
 }
 
-void    *_Z_new(void *type, ...);
-#define  Z_new(type, ...) _Z_new(type##_initType(), ##__VA_ARGS__)
+void    *Z_new(void *type, ...);
 void     Z_delete(void *self);
 
 static inline void _Z_cleanup(void *pSelf) {
@@ -86,65 +83,65 @@ static inline void *Z_typeOf(void *_self) {
 }
 
 static inline bool Z_isInstanceOf(void *self, void *type) {
-  return Z_typeOf(self) == type;
-}
-
-static inline void *Z_cast(void *type, void *self) {
-  assert(Z_isInstanceOf(type, ZType));
-  if (Z_typeOf(self) == type) {
-    return self;
+  if (type == ZObject()) {
+    return Z_isObject(self);
   } else {
-    void *t = ZObject_getSuperType(self);
-    while (t != type && t != ZObject) {
-      t = ZObject_getSuperType(self);
+    void *t = ZObject_getType(self);
+    while (t != type && t != ZObject()) {
+      t = ZType_getSuperType(t);
     }
-    if (t == type) {
-      return self;
-    } else {
-      return NULL;
-    }
+    return t == type;
   }
 }
 
-#define Z_DECLARE_TYPE(name)            \
-  extern void *name##Type;              \
-  void *name##Type_initType(void);      \
-  extern void *name;                    \
-  void *name##_initType(void);
+static inline void *Z_cast(void *type, void *self) {
+  assert(Z_isInstanceOf(self, type));
+  return self;
+}
+
+#define Z_DECLARE_TYPE(name)    \
+  void *name##Type(void);       \
+  void *name(void);
 
 #define _Z_TO_STRING(x) #x
 
-#define _Z_DEFINE_TYPE(name, superName, ...)        \
-  void *name##Type = NULL;                          \
-  void *name##Type_initType(void) {                 \
-    if (!name##Type) {                              \
-      name##Type = Z_new(ZType,                     \
-                         _Z_TO_STRING(name##Type),  \
-                         ZType,                     \
-                         sizeof(struct name##Type), \
-                         name##Type_init,           \
-                         name##Type_finalize);      \
-    }                                               \
-    return name##Type;                              \
-  }                                                 \
-  void *name = NULL;                                \
-  void *name##_initType(void) {                     \
-    if (!name) {                                    \
-      name = Z_new(name##Type,                      \
-                   #name,                           \
-                   superName,                       \
-                   sizeof(struct name),             \
-                   name##_init,                     \
-                   name##_finalize,                 \
-                   ##__VA_ARGS__);                  \
-    }                                               \
-    return name;                                    \
+#define _Z_DEFINE_TYPE(name, superName, ...)            \
+  void *_##name##Type = NULL;                           \
+  void *name##Type(void) {                              \
+    if (!_##name##Type) {                               \
+      _##name##Type = Z_new(ZType(),                    \
+                            _Z_TO_STRING(name##Type),   \
+                            ZType(),                    \
+                            sizeof(struct name##Type),  \
+                            name##Type_init,            \
+                            name##Type_finalize);       \
+    }                                                   \
+    return _##name##Type;                               \
+  }                                                     \
+  void *_##name = NULL;                                 \
+  void *name(void) {                                    \
+    if (!_##name) {                                     \
+      _##name = Z_new(name##Type(),                     \
+                      #name,                            \
+                      superName(),                      \
+                      sizeof(struct name),              \
+                      name##_init,                      \
+                      name##_finalize,                  \
+                      ##__VA_ARGS__);                   \
+    }                                                   \
+    return _##name;                                     \
   }
 
 #define Z_DEFINE_TYPE(name, superName, ...) \
   _Z_DEFINE_TYPE(name, superName, ##__VA_ARGS__)
 
-#define ZPtr __attribute__((__cleanup__(_Z_cleanup))) void *
+#define ZRaii __attribute__((__cleanup__(_Z_cleanup)))
+
+// http://stackoverflow.com/questions/12862966/integer-promotion-for-long-and-size-t-when-sent-through-ellipsis
+#define Z_VA_ARG_SIZE_T(args) _Generic((+(sizeof(0))),  \
+  int:          (size_t) va_arg((args), unsigned int),  \
+  unsigned int: (size_t) va_arg((args), unsigned int),  \
+  default:               va_arg((args), size_t))
 
 #ifdef  __cplusplus
 }
