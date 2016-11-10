@@ -1,6 +1,9 @@
+#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "ZGeneric.h"
+
+Z_DECLARE_GENERIC(TestGenericObject, ZObject, 1)
 
 struct TestGenericObject {
   struct ZObject    super;
@@ -14,7 +17,7 @@ struct TestGenericObjectType {
 void TestGenericObject_init(void *_self, va_list args)
 {
   struct TestGenericObject *self = _self;
-  self->data = Z_cast(ZGeneric_getArg(Z_typeOf(self), 0), va_arg(args, void *));
+  self->data = Z_cast(Z_GENERIC_ARG(self, 0), va_arg(args, void *));
 }
 
 void TestGenericObject_finalize(void *_self)
@@ -29,32 +32,15 @@ void TestGenericObjectType_init(void *_self, va_list args)
 void TestGenericObjectType_finalize(void *_self)
 {}
 
-void *TestGenericObjectType(size_t numArgs, void **args)
-{
-  return Z_new(ZGeneric(),
-               "TestGenericObjectType",
-               ZGeneric(),
-               sizeof(struct TestGenericObjectType),
-               TestGenericObjectType_init,
-               TestGenericObjectType_finalize,
-               numArgs,
-               args);
-}
-
-void *TestGenericObject(size_t numArgs, void **args)
-{
-  return Z_new(TestGenericObjectType(numArgs, args),
-               "TestGenericObject",
-               ZObject(),
-               sizeof(struct TestGenericObject),
-               TestGenericObject_init,
-               TestGenericObject_finalize,
-               numArgs,
-               args);
-}
+// Name, SuperTypeName, numArgs, TypeOfArg[0], TypeOfArg[1], ...
+Z_DEFINE_GENERIC(TestGenericObject, ZObject, 1, ZType())
 
 int main(void)
 {
-  ZRaii void *obj = Z_new(TestGenericObject(1, (void *[]){ ZType() }), ZObject());
+  /* ZRaii void *x = Z_new(ZObject()); */
+  // ZRaii void *obj = Z_new(TestGenericObject(1, ZType(), ZType()), x);
+
+  // refer to a generic type using: Type(arg0, arg1, ...)
+  ZRaii void *obj = Z_new(TestGenericObject(Z_GENERIC_MAKE_ARGS(ZType())), ZObject());
   return 0;
 }
