@@ -9,6 +9,7 @@ extern "C" {
 #include <stdint.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define Z_MAGIC 'ZOBJ'
 
