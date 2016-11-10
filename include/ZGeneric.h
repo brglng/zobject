@@ -41,13 +41,15 @@ void ZGenericType_finalize(void *_self);
 #define Z_GENERIC_MAKE_ARGS(...) ((void *[]){__VA_ARGS__})
 
 #define Z_DECLARE_GENERIC(name, superName, numArgs)     \
-  void ** name##_genericArgsTypes(void);        \
+  extern const size_t name##_numGenericArgs;            \
+  void **name##_genericArgsTypes(void);                 \
   void *name##Type(void *gArgs[numArgs]);               \
   void *name(void *gArgs[numArgs]);
 
 #define Z_DEFINE_GENERIC_WITH_NAME_STR(name, nameStr, superName, numArgs, ...)  \
-  void *_name##_genericArgsTypes[numArgs] = {NULL};                             \
-  void ** name##_genericArgsTypes(void) {                                       \
+  const size_t name##_numGenericArgs = (numArgs);                               \
+  void *_name##_genericArgsTypes[numArgs] = { NULL };                           \
+  void **name##_genericArgsTypes(void) {                                        \
     if (_name##_genericArgsTypes[0] == NULL) {                                  \
       memcpy(_name##_genericArgsTypes,                                          \
              (void *[numArgs]){__VA_ARGS__},                                    \
