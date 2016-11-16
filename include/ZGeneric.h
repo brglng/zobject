@@ -30,6 +30,7 @@ struct ZGenericType {
 
 void ZGeneric_init(void *self, va_list args);
 void ZGeneric_finalize(void *self);
+bool ZGeneric_isEqual(void *_self, void *_other);
 
 void ZGenericType_init(void *self, va_list args);
 void ZGenericType_finalize(void *self);

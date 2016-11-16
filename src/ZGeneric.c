@@ -5,10 +5,13 @@
 
 Z_DEFINE_TYPE_WITH_NAME_STR(ZGeneric, "Generic", ZType)
 
-void ZGeneric_init(void *_self, va_list args)
-{
+void ZGeneric_init(void *_self, va_list args) {
   struct ZGeneric *self = ZCast(ZGeneric(), _self);
+
   ZType_init(self, args);
+
+  self->super.isEqual = ZGeneric_isEqual;
+
   self->numArgs = Z_VA_ARG_SIZE_T(args);
   self->argsTypes = calloc(self->numArgs, sizeof(void *));
   assert(self->argsTypes);
@@ -24,20 +27,35 @@ void ZGeneric_init(void *_self, va_list args)
   memcpy(self->args, gArgs, self->numArgs * sizeof(struct ZObject *));
 }
 
-void ZGeneric_finalize(void *_self)
-{
+void ZGeneric_finalize(void *_self) {
   struct ZGeneric *self = ZCast(ZGeneric(), _self);
   free(self->argsTypes);
   free(self->args);
   ZType_finalize(self);
 }
 
-void ZGenericType_init(void *self, va_list args)
-{
+bool ZGeneric_isEqual(void *_self, void *_other) {
+  struct ZGeneric *self = ZCast(ZGeneric(), _self);
+  struct ZGeneric *other = ZCast(ZGeneric(), _other);
+  size_t numArgs = self->numArgs;
+  if (numArgs != other->numArgs) {
+    return false;
+  }
+  for (size_t i = 0; i < numArgs; ++i) {
+    if (self->argsTypes[i] != other->argsTypes[i]) {
+      return false;
+    }
+    if (self->args[i] != other->args[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void ZGenericType_init(void *self, va_list args) {
   ZType_init(self, args);
 }
 
-void ZGenericType_finalize(void *self)
-{
+void ZGenericType_finalize(void *self) {
   ZType_finalize(self);
 }

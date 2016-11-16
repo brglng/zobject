@@ -31,7 +31,7 @@ struct ZType {
   size_t            objectSize;
   void              (*init)(void *self, va_list args);
   void              (*finalize)(void *self);
-  bool              (*isInstance)(void *type, void *obj);
+  bool              (*isEqual)(void *type, void *other);
 };
 
 static inline bool ZIsObject(void *_self);
@@ -39,20 +39,22 @@ static inline void *ZCast(void *type, void *self);
 
 void ZObject_init(void *self, va_list args);
 void ZObject_finalize(void *self);
+bool ZObject_isEqual(void *type, void *other);
 
 static inline void *ZObject_getType(void *_self) {
-  struct ZObject *self = ZCast(ZObject(), _self);
+  assert(ZIsObject(_self));
+  struct ZObject *self = _self;
   return self->type;
 }
 
 static inline void *ZObject_getSuperType(void *_self) {
-  struct ZObject *self = ZCast(ZObject(), _self);
+  assert(ZIsObject(_self));
+  struct ZObject *self = _self;
   return ((struct ZType *)self->type)->superType;
 }
 
 void ZType_init(void *self, va_list args);
 void ZType_finalize(void *self);
-bool ZType_isInstance(void *type, void *obj);
 
 static inline char* ZType_getName(void *_self) {
   struct ZType *self = ZCast(ZType(), _self);
@@ -67,11 +69,6 @@ static inline void *ZType_getSuperType(void *_self) {
 void *ZNew(void *type, ...);
 void ZDelete(void *self);
 
-static inline void _ZCleanup(void *pSelf) {
-  struct ZObject *self = ZCast(ZObject(), *(void**)pSelf);
-  ZDelete(self);
-}
-
 static inline bool ZIsObject(void *_self) {
   assert(_self);
   struct ZObject *self = _self;
@@ -82,11 +79,23 @@ static inline void *ZTypeOf(void *self) {
   return ZObject_getType(self);
 }
 
+static inline bool ZIsEqual(void *self, void *other) {
+  struct ZType *type = ZTypeOf(self);
+  return type->isEqual(self, other);
+}
+
 static inline bool ZIsInstanceOf(void *obj, void *type) {
   if (type == ZObject()) {
     return ZIsObject(obj);
   } else if (ZIsObject(obj)) {
-    return ((struct ZType *)(((struct ZObject *)obj)->type))->isInstance(type, obj);
+    struct ZType *t = ((struct ZObject *)obj)->type;
+    while (t != ZObject()) {
+      if (ZIsEqual(t, type)) {
+        return true;
+      }
+      t = t->superType;
+    }
+    return false;
   } else {
     return false;
   }

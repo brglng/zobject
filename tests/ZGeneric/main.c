@@ -20,8 +20,10 @@ struct TestGenericType {
 
 void TestGeneric_init(void *_self, va_list args)
 {
-  struct TestGeneric *self = _self;
-  self->data = ZCast(Z_GENERIC_ARG(self, 0), va_arg(args, void *));
+  void *T = Z_GENERIC_ARG(_self, 0);
+  struct TestGeneric *self = ZCast(TestGeneric(T), _self);
+
+  self->data = ZCast(T, va_arg(args, void *));
 }
 
 void TestGeneric_finalize(void *_self)
@@ -38,7 +40,7 @@ void TestGenericType_finalize(void *_self)
   ZGeneric_finalize(_self);
 }
 
-// TestGeneric<Type T>
+// class TestGeneric<Type T> : ZObject
 Z_DEFINE_GENERIC(TestGeneric, ZObject, 1, ZType())
 
 int main(void)
