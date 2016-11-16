@@ -42,10 +42,10 @@ bool ZGeneric_isEqual(void *_self, void *_other) {
     return false;
   }
   for (size_t i = 0; i < numArgs; ++i) {
-    if (self->argsTypes[i] != other->argsTypes[i]) {
+    if (!ZIsEqual(self->argsTypes[i], other->argsTypes[i])) {
       return false;
     }
-    if (self->args[i] != other->args[i]) {
+    if (!ZIsEqual(self->args[i], other->args[i])) {
       return false;
     }
   }
