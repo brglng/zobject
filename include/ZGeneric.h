@@ -32,13 +32,23 @@ void ZGeneric_init(void *self, va_list args);
 void ZGeneric_finalize(void *self);
 bool ZGeneric_isEqual(void *_self, void *_other);
 
+static inline size_t ZGeneric_getNumArgs(void *_self) {
+  struct ZGeneric *self = ZCast(ZGeneric(), _self);
+  return self->numArgs;
+}
+
+static inline void *ZGeneric_getArgType(void *_self, size_t i) {
+  struct ZGeneric *self = ZCast(ZGeneric(), _self);
+  return self->argsTypes[i];
+}
+
+static inline void *ZGeneric_getArg(void *_self, size_t i) {
+  struct ZGeneric *self = ZCast(ZGeneric(), _self);
+  return self->args[i];
+}
+
 void ZGenericType_init(void *self, va_list args);
 void ZGenericType_finalize(void *self);
-
-#define Z_GENERIC_ARG(obj, i) \
-  (((struct ZGeneric *)ZCast(ZGeneric(), ZTypeOf(obj)))->args[i])
-#define Z_GENERIC_ARG_TYPE(obj, i) \
-  (((struct ZGeneric *)ZCast(ZGeneric(), ZTypeOf(obj)))->argsTypes[i])
 
 #define Z_GENERIC_ARGS(...) ((void *[]){__VA_ARGS__})
 

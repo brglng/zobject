@@ -20,7 +20,7 @@ struct TestGenericType {
 
 void TestGeneric_init(void *_self, va_list args)
 {
-  void *T = Z_GENERIC_ARG(_self, 0);
+  void *T = ZGeneric_getArg(ZTypeOf(_self), 0);
   struct TestGeneric *self = ZCast(TestGeneric(T), _self);
 
   self->data = ZCast(T, va_arg(args, void *));
