@@ -40,7 +40,7 @@ void TestGenericType_finalize(void *_self)
   ZGeneric_finalize(_self);
 }
 
-// class TestGeneric<Type T> : ZObject
+// class TestGeneric<Type T> extends Object
 Z_DEFINE_GENERIC(TestGeneric, ZObject, 1, ZType())
 
 int main(void)
