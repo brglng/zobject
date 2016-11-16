@@ -1,13 +1,13 @@
 #ifndef __Z_GENERIC_H__
 #define __Z_GENERIC_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <memory.h>
 #include <stddef.h>
 #include "ZObject.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 Z_DECLARE_TYPE(ZGeneric)
 
@@ -28,56 +28,45 @@ struct ZGenericType {
   struct ZType  super;
 };
 
-void ZGeneric_init(void *_self, va_list args);
-void ZGeneric_finalize(void *_self);
-void ZGenericType_init(void *_self, va_list args);
-void ZGenericType_finalize(void *_self);
+void ZGeneric_init(void *self, va_list args);
+void ZGeneric_finalize(void *self);
+
+void ZGenericType_init(void *self, va_list args);
+void ZGenericType_finalize(void *self);
 
 #define Z_GENERIC_ARG(obj, i) \
-  (((struct ZGeneric *)Z_cast(ZGeneric(), Z_typeOf(obj)))->args[i])
+  (((struct ZGeneric *)ZCast(ZGeneric(), ZTypeOf(obj)))->args[i])
 #define Z_GENERIC_ARG_TYPE(obj, i) \
-  (((struct ZGeneric *)Z_cast(ZGeneric(), Z_typeOf(obj)))->argsTypes[i])
+  (((struct ZGeneric *)ZCast(ZGeneric(), ZTypeOf(obj)))->argsTypes[i])
 
-#define Z_GENERIC_MAKE_ARGS(...) ((void *[]){__VA_ARGS__})
+#define Z_GENERIC_ARGS(...) ((void *[]){__VA_ARGS__})
 
-#define Z_DECLARE_GENERIC(name, superName, numArgs)     \
-  extern const size_t name##_numGenericArgs;            \
-  void **name##_genericArgsTypes(void);                 \
-  void *name##Type(void *gArgs[numArgs]);               \
-  void *name(void *gArgs[numArgs]);
+#define Z_DECLARE_GENERIC(name, superName, numArgs)   \
+  void *_##name##Type(void *gArgs[numArgs]);        \
+  void *_##name(void *gArgs[numArgs]); 
 
 #define Z_DEFINE_GENERIC_WITH_NAME_STR(name, nameStr, superName, numArgs, ...)  \
-  const size_t name##_numGenericArgs = (numArgs);                               \
-  void *_name##_genericArgsTypes[numArgs] = { NULL };                           \
-  void **name##_genericArgsTypes(void) {                                        \
-    if (_name##_genericArgsTypes[0] == NULL) {                                  \
-      memcpy(_name##_genericArgsTypes,                                          \
-             (void *[numArgs]){__VA_ARGS__},                                    \
-             (numArgs) * sizeof(void *));                                       \
-    }                                                                           \
-    return _name##_genericArgsTypes;                                            \
+  void *_##name##Type(void *gArgs[numArgs]) {                                   \
+    return ZNew(ZGeneric(),                                                     \
+                nameStr "Type",                                                 \
+                ZGeneric(),                                                     \
+                sizeof(struct name##Type),                                      \
+                name##Type_init,                                                \
+                name##Type_finalize,                                            \
+                (size_t)numArgs,                                                \
+                __VA_ARGS__,                                                    \
+                gArgs);                                                         \
   }                                                                             \
-  void *name##Type(void *gArgs[numArgs]) {                                      \
-    return Z_new(ZGeneric(),                                                    \
-                 nameStr "Type",                                                \
-                 ZGeneric(),                                                    \
-                 sizeof(struct name##Type),                                     \
-                 name##Type_init,                                               \
-                 name##Type_finalize,                                           \
-                 numArgs,                                                       \
-                 name##_genericArgsTypes(),                                     \
-                 gArgs);                                                        \
-  }                                                                             \
-  void *name(void *gArgs[numArgs]) {                                            \
-    return Z_new(name##Type(gArgs),                                             \
-                 nameStr,                                                       \
-                 superName(),                                                   \
-                 sizeof(struct name),                                           \
-                 name##_init,                                                   \
-                 name##_finalize,                                               \
-                 numArgs,                                                       \
-                 name##_genericArgsTypes(),                                     \
-                 gArgs);                                                        \
+  void *_##name(void *gArgs[numArgs]) {                                         \
+    return ZNew(_##name##Type(gArgs),                                           \
+                nameStr,                                                        \
+                superName(),                                                    \
+                sizeof(struct name),                                            \
+                name##_init,                                                    \
+                name##_finalize,                                                \
+                (size_t)numArgs,                                                \
+                __VA_ARGS__,                                                    \
+                gArgs);                                                         \
   }
 
 #define Z_DEFINE_GENERIC(name, superName, numArgs, ...) \

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include "ZObject.h"
 
@@ -17,7 +16,7 @@ struct ZType _ZObject = {
   .objectSize   = sizeof(struct ZObject),
   .init         = ZObject_init,
   .finalize     = ZObject_finalize,
-  .isInstanceOf = ZObject_isInstanceOf,
+  .isInstance   = ZType_isInstance,
 };
 
 void *ZObject(void)
@@ -25,25 +24,12 @@ void *ZObject(void)
   return &_ZObject;
 }
 
-void ZObject_init(void *_self, va_list args)
+void ZObject_init(void *self, va_list args)
 {
 }
 
 void ZObject_finalize(void *self)
 {
-}
-
-bool ZObject_isInstanceOf(void *self, void *type)
-{
-  if (type == ZObject()) {
-    return Z_isObject(self);
-  } else {
-    void *t = ZObject_getType(self);
-    while (t != type && t != ZObject()) {
-      t = ZType_getSuperType(t);
-    }
-    return t == type;
-  }
 }
 
 struct ZType _ZType = {
@@ -56,7 +42,7 @@ struct ZType _ZType = {
   .objectSize   = sizeof(struct ZType),
   .init         = ZType_init,
   .finalize     = ZType_finalize,
-  .isInstanceOf = ZObject_isInstanceOf,
+  .isInstance   = ZType_isInstance,
 };
 
 void *ZType(void)
@@ -64,45 +50,64 @@ void *ZType(void)
   return &_ZType;
 }
 
+void ZType_new(void *_self)
+{
+  struct ZType *self = ZCast(&_ZType, _self);
+
+  self->isInstance = ZType_isInstance;
+}
+
 void ZType_init(void *_self, va_list args)
 {
-  struct ZType *self = Z_cast(ZType(), _self);
+  struct ZType *self = ZCast(&_ZType, _self);
   self->name = va_arg(args, char *);
   self->superType = va_arg(args, void *);
-  self->objectSize = va_arg(args, size_t);
-  self->init = va_arg(args, void *);
-  self->finalize = va_arg(args, void *);
-  self->isInstanceOf = ZObject_isInstanceOf;
+  self->objectSize = Z_VA_ARG_SIZE_T(args);
+  self->init = va_arg(args, ZConstructor);
+  self->finalize = va_arg(args, ZDestructor);
+  self->isInstance = ZType_isInstance;
 }
 
-void ZType_finalize(void *self)
+void ZType_finalize(void *_self)
 {
+}
+
+bool ZType_isInstance(void *type, void *obj)
+{
+  if (type == &_ZObject) {
+    return ZIsObject(obj);
+  } else if (ZIsObject(obj)) {
+    struct ZType *t = ((struct ZObject *)obj)->type;
+    while (t != type && t != &_ZObject) {
+      t = t->superType;
+    }
+    return t == type;
+  } else {
+    return false;
+  }
 }
 
 __attribute__((malloc))
-void *Z_vnew(void *_type, va_list args)
+void *ZNew(void *_type, ...)
 {
-  struct ZType *type = Z_cast(ZType(), _type);
-  struct ZObject *obj = calloc(1, type->objectSize);
+  struct ZType *type = ZCast(&_ZType, _type);
+  struct ZObject *obj;
+  va_list args;
+
+  obj = calloc(1, type->objectSize);
   obj->magic = Z_MAGIC;
   obj->type = type;
+
+  va_start(args, _type);
   type->init(obj, args);
-  return obj;
-}
-
-__attribute__((malloc))
-void *Z_new(void *type, ...)
-{
-  va_list args;
-  va_start(args, type);
-  void *obj = Z_vnew(type, args);
   va_end(args);
+
   return obj;
 }
 
-void Z_delete(void *_self)
+void ZDelete(void *_self)
 {
-  struct ZObject *self = Z_cast(ZObject(), _self);
-  self->type->finalize(self);
+  struct ZObject *self = ZCast(&_ZObject, _self);
+  ((struct ZType *)self->type)->finalize(self);
   free(self);
 }
