@@ -18,9 +18,10 @@ struct TestObjType {
   struct ZType      super;
 };
 
-void TestObj_init(void *_self, va_list arg) {
+void *TestObj_init(void *_self, bool *destructorIsCalled) {
   struct TestObj *self = ZCast(TestObj(), _self);
-  self->destructorIsCalled = va_arg(arg, bool *);
+  self->destructorIsCalled = destructorIsCalled;
+  return self;
 }
 
 void TestObj_finalize(void *_self) {
@@ -28,22 +29,20 @@ void TestObj_finalize(void *_self) {
   *self->destructorIsCalled = true;
 }
 
-void TestObjType_init(void *_self, va_list arg) {
-  ZType_init(_self, arg);
+void *TestObjType_init(void *self) {
+  return self;
 }
 
 void TestObjType_finalize(void *_self) {
-  ZType_finalize(_self);
 }
 
 // must put this *after* your type's structs and methods
 Z_DEFINE_TYPE(TestObj, ZObject)
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   void *obj = ZNew(ZObject());
-  void *type = ZTypeOf(obj);
-  void *typeType = ZTypeOf(type);
+  void *type = ZObject_getType(obj);
+  void *typeType = ZObject_getType(type);
 
   // Object
   assert(ZObject_getType(obj) == ZObject());
@@ -61,15 +60,16 @@ int main(int argc, char *argv[])
   assert(ZType_getSuperType(type) == ZObject());
   assert(ZType_getSuperType(typeType) == ZObject());
 
+  void *t = TestObj();
   bool destructorIsCalled = false;
-  void *testObj = ZNew(TestObj(), &destructorIsCalled);
-  assert(ZTypeOf(testObj) == TestObj());
+  void *testObj = TestObj_init(ZNew(t), &destructorIsCalled);
+  assert(ZObject_getType(testObj) == TestObj());
   assert(strcmp(ZType_getName(TestObj()), "TestObj") == 0);
-  assert(ZTypeOf(TestObj()) == TestObjType());
+  assert(ZObject_getType(TestObj()) == TestObjType());
   assert(ZType_getSuperType(TestObj()) == ZObject());
   ZDelete(testObj);
-
   assert(destructorIsCalled);
+  ZDelete(t);
 
   return 0;
 }

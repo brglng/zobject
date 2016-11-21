@@ -5,13 +5,18 @@ Clang (because the implementation heavily depends on [GCC extensions](https://gc
 This library is in very early development and is not ready for production. Use
 at your own risk!
 
-## Why Bother Creating Yet Another C Object-Oriented Programming Library?
-Just as I said before, this is my experiment. I create this library not only for
-fun, but also for learning the internals of Object-Oriented Programming.
+## Why Do I Create This Library?
+1. I am learning the internals of Object-Oriented Programming by creating this
+   library.
+2. It's fun.
+3. I want to implement features that are not usually seen in similar libraries,
+   such as reified generics (parameterized types).
+4. Maybe in the future I will create a language that compiles to C using this
+   library as its language runtime.
 
 ## Usage and Features
 
-Please see [tests](https://github.com/brglng/zobject/tree/master/tests).
+Please see [tests](https://github.com/brglng/zobject/tree/master/tests) for now.
 
 ## References
 - [Object-Oriented Programming with ANSI C](https://www.cs.rit.edu/~ats/books/ooc.pdf)

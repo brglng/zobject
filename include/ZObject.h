@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdarg.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,8 +16,8 @@ extern "C" {
 void *ZObject(void);
 void *ZType(void);
 
-typedef void (*ZConstructor)(void *self, va_list args);
 typedef void (*ZDestructor)(void *self);
+typedef bool (*ZEqualFunc)(void *self, void *other);
 
 struct ZObject {
   uint32_t  magic;
@@ -29,17 +29,15 @@ struct ZType {
   char              *name;
   void              *superType;
   size_t            objectSize;
-  void              (*init)(void *self, va_list args);
-  void              (*finalize)(void *self);
-  bool              (*isEqual)(void *type, void *other);
+  ZDestructor       finalize;
+  ZEqualFunc        equal;
 };
 
 static inline bool ZIsObject(void *_self);
 static inline void *ZCast(void *type, void *self);
 
-void ZObject_init(void *self, va_list args);
+void *ZObject_init(void *self);
 void ZObject_finalize(void *self);
-bool ZObject_isEqual(void *type, void *other);
 
 static inline void *ZObject_getType(void *_self) {
   assert(ZIsObject(_self));
@@ -53,7 +51,8 @@ static inline void *ZObject_getSuperType(void *_self) {
   return ((struct ZType *)self->type)->superType;
 }
 
-void ZType_init(void *self, va_list args);
+void *ZType_init(void *self, char *name, void *superType, size_t objectSize,
+                 ZDestructor finalize);
 void ZType_finalize(void *self);
 
 static inline char* ZType_getName(void *_self) {
@@ -66,23 +65,19 @@ static inline void *ZType_getSuperType(void *_self) {
   return self->superType;
 }
 
-void *ZNew(void *type, ...);
-void ZDelete(void *self);
-
 static inline bool ZIsObject(void *_self) {
   assert(_self);
   struct ZObject *self = _self;
   return self->magic == Z_MAGIC;
 }
 
-static inline void *ZTypeOf(void *self) {
-  return ZObject_getType(self);
+static inline bool ZObject_equal(void *self, void *other) {
+  struct ZType *type = ZObject_getType(self);
+  return type->equal(self, other);
 }
 
-static inline bool ZIsEqual(void *self, void *other) {
-  struct ZType *type = ZTypeOf(self);
-  return type->isEqual(self, other);
-}
+void *ZNew(void *_type);
+void ZDelete(void *_self);
 
 static inline bool ZIsInstanceOf(void *obj, void *type) {
   if (type == ZObject()) {
@@ -90,7 +85,7 @@ static inline bool ZIsInstanceOf(void *obj, void *type) {
   } else if (ZIsObject(obj)) {
     struct ZType *t = ((struct ZObject *)obj)->type;
     while (t != ZObject()) {
-      if (ZIsEqual(t, type)) {
+      if (t == type) {
         return true;
       }
       t = t->superType;
@@ -114,35 +109,28 @@ static inline void *ZCast(void *type, void *obj) {
   void *_##name##Type = NULL;                                   \
   void *name##Type(void) {                                      \
     if (!_##name##Type) {                                       \
-      _##name##Type = ZNew(ZType(),                             \
-                           nameStr "Type",                      \
-                           ZType(),                             \
-                           sizeof(struct name##Type),           \
-                           name##Type_init,                     \
-                           name##Type_finalize);                \
+      _##name##Type = ZType_init(ZNew(ZType()),                 \
+                                 nameStr "Type",                \
+                                 ZType(),                       \
+                                 sizeof(struct name##Type),     \
+                                 name##Type_finalize);          \
     }                                                           \
     return _##name##Type;                                       \
   }                                                             \
   void *_##name = NULL;                                         \
   void *name(void) {                                            \
     if (!_##name) {                                             \
-      _##name = ZNew(name##Type(),                              \
-                     nameStr,                                   \
-                     superName(),                               \
-                     sizeof(struct name),                       \
-                     name##_init,                               \
-                     name##_finalize);                          \
+      _##name = name##Type_init(ZType_init(ZNew(name##Type()),  \
+                                           nameStr,             \
+                                           superName(),         \
+                                           sizeof(struct name), \
+                                           name##_finalize));   \
     }                                                           \
     return _##name;                                             \
   }
 
 #define Z_DEFINE_TYPE(name, superName) \
   Z_DEFINE_TYPE_WITH_NAME_STR(name, #name, superName)
-
-#define Z_VA_ARG_SIZE_T(args) _Generic((+(sizeof(0))),  \
-  int:          (size_t)va_arg((args), unsigned int),   \
-  unsigned int: (size_t)va_arg((args), unsigned int),   \
-  default:              va_arg((args), size_t))
 
 #ifdef  __cplusplus
 }

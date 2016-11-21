@@ -28,9 +28,10 @@ struct ZGenericType {
   struct ZType  super;
 };
 
-void ZGeneric_init(void *self, va_list args);
+void *ZGeneric_init(void *self, char *name, void *superType, size_t objectSize,
+                    ZDestructor finalize, size_t numArgs, void **argsTypes,
+                    void **args);
 void ZGeneric_finalize(void *self);
-bool ZGeneric_isEqual(void *_self, void *_other);
 
 static inline size_t ZGeneric_getNumArgs(void *_self) {
   struct ZGeneric *self = ZCast(ZGeneric(), _self);
@@ -47,41 +48,40 @@ static inline void *ZGeneric_getArg(void *_self, size_t i) {
   return self->args[i];
 }
 
-void ZGenericType_init(void *self, va_list args);
+void *ZGenericType_init(void *self);
 void ZGenericType_finalize(void *self);
 
 #define Z_GENERIC_ARGS(...) ((void *[]){__VA_ARGS__})
+#define Z_GENERIC_NUM_ARGS(...) (sizeof(Z_GENERIC_ARGS(__VA_ARGS__)) / sizeof(void *))
 
-#define Z_DECLARE_GENERIC(name, superName, numArgs)   \
-  void *_##name##Type(void *gArgs[numArgs]);        \
-  void *_##name(void *gArgs[numArgs]); 
+#define Z_DECLARE_GENERIC(name, superName)  \
+  void *_##name##Type(void *gArgs[]);       \
+  void *_##name(void *gArgs[]); 
 
-#define Z_DEFINE_GENERIC_WITH_NAME_STR(name, nameStr, superName, numArgs, ...)  \
-  void *_##name##Type(void *gArgs[numArgs]) {                                   \
-    return ZNew(ZGeneric(),                                                     \
-                nameStr "Type",                                                 \
-                ZGeneric(),                                                     \
-                sizeof(struct name##Type),                                      \
-                name##Type_init,                                                \
-                name##Type_finalize,                                            \
-                (size_t)numArgs,                                                \
-                __VA_ARGS__,                                                    \
-                gArgs);                                                         \
-  }                                                                             \
-  void *_##name(void *gArgs[numArgs]) {                                         \
-    return ZNew(_##name##Type(gArgs),                                           \
-                nameStr,                                                        \
-                superName(),                                                    \
-                sizeof(struct name),                                            \
-                name##_init,                                                    \
-                name##_finalize,                                                \
-                (size_t)numArgs,                                                \
-                __VA_ARGS__,                                                    \
-                gArgs);                                                         \
+#define Z_DEFINE_GENERIC_WITH_NAME_STR(name, nameStr, superName, ...)   \
+  void *_##name##Type(void *gArgs[]) {                                  \
+    return ZGeneric_init(ZNew(ZGeneric()),                              \
+                         nameStr "Type",                                \
+                         ZGeneric(),                                    \
+                         sizeof(struct name##Type),                     \
+                         name##Type_finalize,                           \
+                         Z_GENERIC_NUM_ARGS(__VA_ARGS__),               \
+                         Z_GENERIC_ARGS(__VA_ARGS__),                   \
+                         gArgs);                                        \
+  }                                                                     \
+  void *_##name(void *gArgs[]) {                                        \
+    return name##Type_init(ZGeneric_init(ZNew(_##name##Type(gArgs)),    \
+                           nameStr,                                     \
+                           superName(),                                 \
+                           sizeof(struct name),                         \
+                           name##_finalize,                             \
+                           Z_GENERIC_NUM_ARGS(__VA_ARGS__),             \
+                           Z_GENERIC_ARGS(__VA_ARGS__),                 \
+                           gArgs));                                     \
   }
 
-#define Z_DEFINE_GENERIC(name, superName, numArgs, ...) \
-  Z_DEFINE_GENERIC_WITH_NAME_STR(name, #name, superName, numArgs, __VA_ARGS__)
+#define Z_DEFINE_GENERIC(name, superName, ...) \
+  Z_DEFINE_GENERIC_WITH_NAME_STR(name, #name, superName, __VA_ARGS__)
 
 #ifdef __cplusplus
 }

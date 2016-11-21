@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "ZGeneric.h"
 
-Z_DECLARE_GENERIC(TestGeneric, ZObject, 1)
+Z_DECLARE_GENERIC(TestGeneric, ZObject)
 
 // these two macros are for convenience, usually necessary
 #define TestGenericType(...)    (_TestGenericType(Z_GENERIC_ARGS(__VA_ARGS__)))
@@ -18,35 +18,47 @@ struct TestGenericType {
   struct ZGeneric   super;
 };
 
-void TestGeneric_init(void *_self, va_list args)
-{
-  void *T = ZGeneric_getArg(ZTypeOf(_self), 0);
-  struct TestGeneric *self = ZCast(TestGeneric(T), _self);
+void *TestGeneric_init(void *_self, void *data) {
+  struct TestGeneric *self = _self;
+  void *T = ZGeneric_getArg(ZObject_getType(_self), 0);
 
-  self->data = ZCast(T, va_arg(args, void *));
+  self->data = ZCast(T, data);
+
+  return self;
 }
 
-void TestGeneric_finalize(void *_self)
-{
+void *TestGeneric_getData(void *_self) {
+  struct TestGeneric *self = _self;
+
+  return self->data;
 }
 
-void TestGenericType_init(void *_self, va_list args)
-{
-  ZGeneric_init(_self, args);
+void TestGeneric_finalize(void *self) {
 }
 
-void TestGenericType_finalize(void *_self)
-{
-  ZGeneric_finalize(_self);
+void *TestGenericType_init(void *self) {
+  // ZGeneric_init() is not necessary as it is called in Z_DEFINE_GENERIC macro
+  return self;
+}
+
+void TestGenericType_finalize(void *self) {
+  // super type's destructor must be called if it is not ZObject or ZType
+  ZGeneric_finalize(self);
 }
 
 // class TestGeneric<Type T> extends Object
-Z_DEFINE_GENERIC(TestGeneric, ZObject, 1, ZType())
+Z_DEFINE_GENERIC(TestGeneric, ZObject, ZType())
 
 int main(void)
 {
   // new TestGeneric<Type>(Object)
-  void *obj = ZNew(TestGeneric(ZType()), ZObject());
+  void *t = TestGeneric(ZType());
+  void *obj = TestGeneric_init(ZNew(t), ZObject());
+  assert(ZGeneric_getNumArgs(t) == 1);
+  assert(ZGeneric_getArgType(t, 0) == ZType());
+  assert(ZGeneric_getArg(t, 0) == ZType());
+  assert(TestGeneric_getData(obj) == ZObject());
   ZDelete(obj);
+  ZDelete(t);
   return 0;
 }

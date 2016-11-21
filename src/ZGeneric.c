@@ -3,28 +3,32 @@
 #include <memory.h>
 #include "ZGeneric.h"
 
-Z_DEFINE_TYPE_WITH_NAME_STR(ZGeneric, "Generic", ZType)
-
-void ZGeneric_init(void *_self, va_list args) {
+void *ZGeneric_init(void *_self, char *name, void *superType, size_t objectSize,
+                    ZDestructor finalize, size_t numArgs, void **argsTypes,
+                    void **args) {
   struct ZGeneric *self = ZCast(ZGeneric(), _self);
 
-  ZType_init(self, args);
+  ZType_init(self, name, superType, objectSize, finalize);
 
-  self->super.isEqual = ZGeneric_isEqual;
+  assert(numArgs > 0);
+  assert(argsTypes);
+  for (size_t i = 0; i < self->numArgs; ++i) {
+    assert(ZIsInstanceOf(argsTypes[i], ZType()));
+  }
+  assert(args);
+  for (size_t i = 0; i < self->numArgs; ++i) {
+    assert(ZIsInstanceOf(args[i], self->argsTypes[i]));
+  }
 
-  self->numArgs = Z_VA_ARG_SIZE_T(args);
-  self->argsTypes = calloc(self->numArgs, sizeof(void *));
+  self->numArgs = numArgs;
+  self->argsTypes = calloc(numArgs, sizeof(void *));
   assert(self->argsTypes);
-  for (size_t i = 0; i < self->numArgs; ++i) {
-    self->argsTypes[i] = ZCast(ZType(), va_arg(args, void *));
-  }
-  void **gArgs = va_arg(args, void **);
-  for (size_t i = 0; i < self->numArgs; ++i) {
-    ZIsInstanceOf(gArgs[i], self->argsTypes[i]);
-  }
   self->args = calloc(self->numArgs, sizeof(void *));
   assert(self->args);
-  memcpy(self->args, gArgs, self->numArgs * sizeof(struct ZObject *));
+  memcpy(self->argsTypes, argsTypes, numArgs * sizeof(void *));
+  memcpy(self->args, args, numArgs * sizeof(void *));
+
+  return self;
 }
 
 void ZGeneric_finalize(void *_self) {
@@ -34,28 +38,12 @@ void ZGeneric_finalize(void *_self) {
   ZType_finalize(self);
 }
 
-bool ZGeneric_isEqual(void *_self, void *_other) {
-  struct ZGeneric *self = ZCast(ZGeneric(), _self);
-  struct ZGeneric *other = ZCast(ZGeneric(), _other);
-  size_t numArgs = self->numArgs;
-  if (numArgs != other->numArgs) {
-    return false;
-  }
-  for (size_t i = 0; i < numArgs; ++i) {
-    if (!ZIsEqual(self->argsTypes[i], other->argsTypes[i])) {
-      return false;
-    }
-    if (!ZIsEqual(self->args[i], other->args[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-void ZGenericType_init(void *self, va_list args) {
-  ZType_init(self, args);
+void *ZGenericType_init(void *self) {
+  return self;
 }
 
 void ZGenericType_finalize(void *self) {
   ZType_finalize(self);
 }
+
+Z_DEFINE_TYPE_WITH_NAME_STR(ZGeneric, "Generic", ZType)
